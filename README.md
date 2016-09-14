@@ -76,13 +76,6 @@ EDITOR=vim visudo
 
 
 # installation application
-pacman -S vim emacs # editors
-pacman -S vlc cmus #media
-pacman -S chromium #browser
-pacman -S bash-completion #utils
-pacman -S zathura #reader
 pacman -S rxvt-unicode #terminal emulator
-pacman -S arandr
 
-pacman -S meld #diff util
 
