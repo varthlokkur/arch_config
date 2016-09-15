@@ -6,6 +6,7 @@ pacman -S meld
 pacman -S vim emacs
 
 # media
+pacman -S alsa-utils alsa-plugins
 pacman -S vlc qt4
 pacman -S cmus
 
