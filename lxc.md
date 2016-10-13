@@ -1,6 +1,34 @@
-lxc-checkconfig
+*Install packages
 
-pacman -S lxc
+``` shell
+sudo pacman -S lxc arch-install-scripts bridge-utils
+```
+
+```shell
+$ lxc-checkconfig
+```
+
+Setup bridge bridge-utils
+```shell
+$ brctl addbr br0
+$ brctl addif wlan0
+$ ip link set up dev br0
+```
+
+Delete bridge
+```shell
+$ ip link set dev br0 down
+$ brctl delbr br0
+```
+
+Setup bridge NetworkManager
+
+```shell
+$ nmcli connection
+$ nmcli con up <UUID>
+```
+
+
 cp /etc/lxc/default.conf $HOME/.config/lxc/default.conf
 touch /etc/subgid
 touch /etc/subgid
