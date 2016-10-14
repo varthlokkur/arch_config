@@ -1,7 +1,7 @@
 *Install packages
 
 ``` shell
-sudo pacman -S lxc arch-install-scripts bridge-utils
+$ sudo pacman -S lxc arch-install-scripts bridge-utils
 ```
 
 ```shell
@@ -28,6 +28,24 @@ $ nmcli connection
 $ nmcli con up <UUID>
 ```
 
+```shell
+$ pacman -S x2goclient
+```
+
+Create container
+```shell
+$ lxc-create -n testarch -t archlinux
+```
+Configure container
+```shell
+$ lxc-attach -n testarch
+$ pacman -S openbox openssh x2goserver 
+$ systemctl start sshd
+$ systemctl enable sshd
+$ pacman -S xorg-xauth xorg-host
+$ systemctl start x2goserver
+$ systemctl enable x2goserver
+```
 
 cp /etc/lxc/default.conf $HOME/.config/lxc/default.conf
 touch /etc/subgid
