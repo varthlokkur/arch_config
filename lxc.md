@@ -24,7 +24,9 @@ $ brctl delbr br0
 Setup bridge NetworkManager
 
 ```shell
-$ nmcli connection
+$ nmcli con add type bridge ifname br0
+$ nmcli con show
+$ nmcli con add type bridge-slave ifname eth1 master bridge-br0
 $ nmcli con up <UUID>
 ```
 
@@ -36,26 +38,58 @@ Create container
 ```shell
 $ lxc-create -n testarch -t archlinux
 ```
-Configure container
+Container configuration
+
+Connect to container
 ```shell
 $ lxc-attach -n testarch
-$ pacman -S openbox openssh x2goserver 
-$ systemctl start sshd
-$ systemctl enable sshd
+```
+
+Upgrade system in container
+```shell
+$ pacman -Sy
+$ pacman -Syu
+```
+
+Install and configure ssh
+```shell
+$ pacman -S openssh
+$ systemctl start sshd.service
+$ systemctl enable sshd.service
+```
+Install xauth and xhost
+```shell
 $ pacman -S xorg-xauth xorg-host
+```
+
+Install openbox
+```shell
+$ pacman -S openbox
+```
+
+Install and configure x2go server
+```shell
+$ pacman -S openbox x2goserver 
 $ systemctl start x2goserver
 $ systemctl enable x2goserver
 ```
 
-cp /etc/lxc/default.conf $HOME/.config/lxc/default.conf
-touch /etc/subgid
-touch /etc/subgid
+Unpriveleged container
 
-usermod --add-subuids 100000 165536 $USER
-usermod --add-subuids 100000 165536 $USER
+Copy lxc config
+```shell
+$ cp /etc/lxc/default.conf $HOME/.config/lxc/default.conf
+```
 
+Create subuid and subgid
+```shell
+$ touch /etc/subgid
+$ touch /etc/subgid
+$ usermod --add-subuids 100000 165536 $USER
+$ usermod --add-subuids 100000 165536 $USER
+```
 
-$HOME/.config/lxc/default.conf
+Add folowing to config file at $HOME/.config/lxc/default.conf
 
 lxc.id_map = u 0 100000 65536
 lxc.id_map = g 0 100000 65536
