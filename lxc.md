@@ -8,6 +8,10 @@ $ sudo pacman -S lxc arch-install-scripts bridge-utils
 $ lxc-checkconfig
 ```
 
+check user namespace for unprivilesged containers
+zgrep CONFIG_USER_NS /proc/config.gz
+
+
 Setup bridge bridge-utils
 ```shell
 $ brctl addbr br0
@@ -29,6 +33,15 @@ $ nmcli con show
 $ nmcli con add type bridge-slave ifname eth1 master bridge-br0
 $ nmcli con up <UUID>
 ```
+
+/etc/sysctl.d/30-ipforward.conf
+net.ipv4.ip_forward=1
+
+iptables -t nat -A POSTROUTING -o wlp1s0 -j MASQUERADE
+iptables-save > /etc/iptables/iptables.rules
+systemctl start iptables.service
+systemctl enable iptabes.service
+
 
 ```shell
 $ pacman -S x2goclient
@@ -74,7 +87,7 @@ $ systemctl start x2goserver
 $ systemctl enable x2goserver
 ```
 
-Unpriveleged container
+# Unpriveleged container
 
 Copy lxc config
 ```shell
@@ -93,3 +106,62 @@ Add folowing to config file at $HOME/.config/lxc/default.conf
 
 lxc.id_map = u 0 100000 65536
 lxc.id_map = g 0 100000 65536
+
+Create container with arch
+```shell
+$ lxc-create -t download -n clean -- -d archlinux -r current -a amd64
+```
+
+Start group maanger service
+```shell
+$ sudo systemctl start cgmanager
+$ sudo systemctl enable cgmanager 
+```
+
+
+```shell
+$ sudo cgm create all $USER
+$ sudo cgm chown all $USER $(id -u $USER) $(id -g $USER)
+$ sudo cgm movepid all $USER $$
+```
+
+Configure network
+vim /etc/lxc/lxc-usernet
+
+Add
+user_name veth br0 10
+
+change the password in container
+chroot /var/lib/lxc/container/rootfs
+passwd
+exit
+
+start unpriviledged container
+sudo cgm create all $USER
+sudo cgm chown all $USER $(id -u $USER) $(id -g $USER)
+sudo cgm movepid all $USER $$
+
+or install
+sudo pacman -S cgmanager
+systemctl enable cgmanager
+systemctl enable cgconfig
+
+vim /ect/cgconfig.conf
+
+group groupname {
+perm {
+admin {
+ uid = $USER
+ gid = $GROUP
+}
+task
+{
+uid = $USER
+gid = $GROUP
+}
+
+cpu {}
+memory {}
+}
+
+unix.stackexchange.com/questions/170998/how-to-create-user-cgroups-with-systemd
