@@ -1,100 +1,141 @@
-# Arch linux installation and configuration
+This repository provides my config files and installation instruction for development environment based on archlinux.
+The instruction is designed for a clean system with UEFI support. 
 
-# check efi 
-efivar -l
+## Installation
 
-# find disk
-lsblk
+### Prepare archlinux image
+1. Download the latest [archlinux image](https://www.archlinux.org/download) 
+2. Burn it to flash drive or CD-ROM.
+3. Setup your machine and load image
 
-# clean disk
-gdisk /dev/sda
-x
-z
-y
-y
+### Prepare disk
+* Make sure that the UEFI is on  
+```shell
+$ efivar -l
+```
 
-# partition on disk
-cgdisk /dev/sda
+* Enumerate disks  
+``` shell
+$ lsblk
+```  
+Should output /dev/sda/
+
+* Clean disk  
+```shell
+$ gdisk /dev/sda
+```  
+Than enter x z y y
+
+* Create new partition. Use GPT.  
+```shell
+$ cgdisk /dev/sda
+```
+```
 new 1024M 	EF00 boot
 new 12G 	8200 swap
 new 40G    		 root
 new 			 home
+```
 
-# file system creation
-mkfs.fat -F32 /dev/sda1
-mkfs.btrfs /dev/sda3
-mkfs.btrfs /dev/sda4
-mkswap /dev/sda2
-swapon /dev/sda2
+* Create file system on partitions  
+```shell
+$ mkfs.fat -F32 /dev/sda1
+$ mkfs.btrfs /dev/sda3
+$ mkfs.btrfs /dev/sda4
+$ mkswap /dev/sda2
+$ swapon /dev/sda2
+```
 
-# mount filesystems
+* Mount file system  
+```shell
 mount /dev/sda3 /mnt 
 mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
 mkdir /mnt/home
 mount /dev/sda4 /mnt/home
+```
 
-# uncomment mirrorlist
-vim /etc/pacman.d/mirrorlist
+### Install base system
 
-# install system
-pacstrap -i /mnt base base-devel
+* Change mirrorlist  
+```shell
+$ vim /etc/pacman.d/mirrorlist
+```
 
-# generate fstab file
-genfstab -U -p /mnt >> /mnt/etc/fstab
+* Install base system  
+```shell
+$ pacstrap -i /mnt base base-devel
+```
 
-# root in system
-arch-chroot /mnt
+* Generate fstab  
+```shell
+$ genfstab -U -p /mnt >> /mnt/etc/fstab
+```
 
-# generate locales (uncomment needed) 
-systemctl language
-vim /etc/locale.gen 
-locale-gen
+* Chroot to system  
+```shell
+$ arch-chroot /mnt
+```
 
-# install system locale
-echo LANG=en-US.UTF-8 >> /etc/locale.conf
-export LANG=en-US.UTF-8
+* Generate locales (uncomment needed)  
+```shell
+$ systemctl language
+$ vim /etc/locale.gen 
+$ locale-gen
+```
 
-# set timezone
-ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+* Install system locale  
+```shell
+$ echo LANG=en-US.UTF-8 >> /etc/locale.conf
+$ export LANG=en-US.UTF-8
+```
 
-# update clock
-hwclock --systohc --utc
+* Set timezone  
+```shell
+$ ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+```
 
-vim /etc/pacman.conf
+* Update clock
+```shell
+$ hwclock --systohc --utc
+```
+* Add AUR repository
+```shell
+$ vim /etc/pacman.conf
 uncomment 
 [multilib]
+```
 
-# upgrade
-pacman -Syu
+* Set hostname  
+```shell
+$ echo varthlokkur >> /etc/hostname
+```
 
-# set hostname
-echo varthlokkur >> /etc/hostname
+* Set root password  
+```shell
+$ passwd
+``` 
 
-# set root password
-passwd 
+* Add user  
+```shell
+$ useradd -m -g users -G wheel,power,storage -s /bin/bash varthlokkur
+$ EDITOR=vim visudo
+uncomment %wheel(ALL = ALL)
+```
 
-# add default user
-useradd -m -g users -G wheel,power,storage -s /bin/bash varthlokkur
-EDITOR=vim visudo
-# uncomment %wheel(ALL = ALL)
-
-# install boot loader
-# grub
-pacman -S grub os_prober
-grub-install /dev/sda
-grub-mkconfig -o /boot/grub/grub.cfg
-
-# uefi grub
-grub-install --target=x86_x64-efi --efi-directory=$esp --bootloader-id=arch_grub --recheck
+* Install boot loader
 
 
-# installation application
+### Installation application
+
+* Terminal  
+```shell
 pacman -S rxvt-unicode #terminal emulator
-pacman -S dialog
+```
 
-# configure network
-pacman -S networkmanager network-manager-applet
+* Network configuration  
+```shell
+pacman -S dialog networkmanager network-manager-applet
 systemctl stop dhcpcd@ens0.service
 systemctl disable dhcpcd@ens0.service
 systemctl stop netcli@ws1.service
@@ -103,34 +144,47 @@ systemctl stop dhcpcd.service
 systemctl disable dhcpcd.service
 systemctl enable NetworkManager.service
 systemctl start NetworkManager.service
+```
+### End of installation
 
+```shell
 exit
 umount -R /mnt
 reboot
+```
 
-# installing x and wm
-pacman -S xorg-server xorg-xinit xorg-utils xort-server-utils
-pacman -S mesa
-pacman -S xf86-input-synaptics
+## Install desktop environment
 
-# detect video card
+* installing X and wm  
+```shell
+$ pacman -S xorg-server xorg-xinit xorg-utils xort-server-utils
+$ pacman -S mesa
+$ pacman -S xf86-input-synaptics
+```
+
+* Detect video card  
+```shell
 lspci | grep VGA
+```
 
-# find drivers
+* Find drivers  
+```shell 
 pacman -Ss | grep xf86-video
+```
 
-# install drivers
+* Install drivers  
+```shell
 pacman -S xf86-video-intel
+```
 
-# install wm
+* Install wm  
+```shell
 pacman -S i3 dmenu
+```
 
-# install logit manager
+* Install login manager  
+```shell
 pacman -S lightdm lightdm-gtk-greater
-
 systemctl enable lightdm
 systemctl start lightdm
-
-
-
-
+```

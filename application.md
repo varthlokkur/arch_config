@@ -1,32 +1,45 @@
-# git 
-pacman -S git
-pacman -S meld
+* Git
+```shell
+$ pacman -S git meld
+```
 
-# editors
-pacman -S vim emacs
+* Editors
+```shell
+$ pacman -S vim emacs
+```
 
-# media
-pacman -S alsa-utils alsa-plugins
-pacman -S vlc qt4
-pacman -S cmus
+* Media
+```shell 
+$ pacman -S alsa-utils alsa-plugins
+$ pacman -S vlc qt4
+$ pacman -S cmus
+$ pacman -S zathura
+```
 
-#browser
-pacman -S chromium
+* Web browser
+```shell
+$ pacman -S chromium
+```
 
-# settings
-pacman -S xfce4-power-manager
-pacman -S arandr
-pacman -S xautolock
+* Settings configurators
+```shell
+$ pacman -S xfce4-power-manager
+$ pacman -S arandr
+$ pacman -S xautolock
+```
 
-# torrent
-pacman -S rtorrent
-makepkg -sri qbittorent
+* Torrent
+```shell 
+$ pacman -S rtorrent
+$ yaourt -S qbittorent
+```
 
-# utils
-pacman -S bash-completion
+* Utils
+```shell 
+$ pacman -S bash-completion tmux
+```
 
-# djvu reader
-pacman -S zathura
-
-# archivator
-pacman -S xarchiver
+* Archivator
+```shell 
+$ pacman -S xarchiver
+```
