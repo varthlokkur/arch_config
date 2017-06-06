@@ -22,9 +22,8 @@ Should output /dev/sda/
 
 * Clean disk  
 ```shell
-$ gdisk /dev/sda
-```  
-Than enter x z y y
+$ sgdisk --xap-all /dev/sda
+```
 
 * Create new partition. Use GPT.  
 ```shell
@@ -79,7 +78,6 @@ $ arch-chroot /mnt
 
 * Generate locales (uncomment needed)  
 ```shell
-$ systemctl language
 $ vim /etc/locale.gen 
 $ locale-gen
 ```
@@ -98,12 +96,6 @@ $ ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 * Update clock
 ```shell
 $ hwclock --systohc --utc
-```
-* Add AUR repository
-```shell
-$ vim /etc/pacman.conf
-uncomment 
-[multilib]
 ```
 
 * Set hostname  
@@ -124,67 +116,117 @@ uncomment %wheel(ALL = ALL)
 ```
 
 * Install boot loader
-
-
-### Installation application
-
-* Terminal  
 ```shell
-pacman -S rxvt-unicode #terminal emulator
+$ mount -t efivarfs efivarfs /sys/firmware/efi/efivars
+$ bootctl install
+$ echo "title Arch Linux
+linux /vmlinuz-linux
+initrd /initramfs-linux.img
+options root=PARTUUID=`blkid -S PARTUUID -o value /dev/sda3` rw" > /boot/loader/entries/arch.conf
 ```
 
-* Network configuration  
+* Install yauort
 ```shell
-pacman -S dialog networkmanager network-manager-applet
-systemctl stop dhcpcd@ens0.service
-systemctl disable dhcpcd@ens0.service
-systemctl stop netcli@ws1.service
-systemctl disable netcli@ws1.service
-systemctl stop dhcpcd.service
-systemctl disable dhcpcd.service
-systemctl enable NetworkManager.service
-systemctl start NetworkManager.service
-```
-### End of installation
-
-```shell
-exit
-umount -R /mnt
-reboot
+$ echo "[archlinuxfr]
+SigLevel = Never
+Server = http://repo.archlinux.fr/$arch" >> /etc/pacman.conf
+$ pacman -Sy yaourt
 ```
 
-## Install desktop environment
-
-* installing X and wm  
+* Configure network
 ```shell
-$ pacman -S xorg-server xorg-xinit xorg-utils xort-server-utils
+$ ip link
+$ systemctl enable dhcpcd@interface_name.service
+```
+
+* Configure wi-fi
+```shell
+$ pacman -S iw wpa_supplicant dialog 
+$ systemctl enable netcli@interface_name.service
+```
+
+* Reboot system
+```shell
+$ exit
+$ umount -R /mnt
+$ reboot
+```
+
+### Configure system
+
+* Setup networkmanager
+```shell
+$ ip link
+$ pacman -S dialog networkmanager
+$ systemctl stop dhcpcd@ens0.service
+$ systemctl disable dhcpcd@ens0.service
+$ systemctl stop netcli@ws1.service
+$ systemctl disable netcli@ws1.service
+$ systemctl stop dhcpcd.service
+$ systemctl disable dhcpcd.service
+$ systemctl enable NetworkManager.service
+$ systemctl start NetworkManager.service
+```
+
+* Find and install video drivers  
+```shell 
+$ lspci | grep -e VGA -e 3D
+$ pacman -Ss | grep xf86-video
+$ pacman -S xf86-video-intel
 $ pacman -S mesa
+```
+ 
+* Install touchpad driver
+```shell
 $ pacman -S xf86-input-synaptics
 ```
 
-* Detect video card  
+* Install terminal font
 ```shell
-lspci | grep VGA
+$ pacman -S terminus-font
 ```
 
-* Find drivers  
-```shell 
-pacman -Ss | grep xf86-video
+### Installation application
+[List of applications](application.md) 
+
+
+## Install desktop environment
+
+* Installing X  
+```shell
+$ pacman -S xorg-server
 ```
 
-* Install drivers  
+* Install tile window manager
 ```shell
-pacman -S xf86-video-intel
-```
-
-* Install wm  
-```shell
-pacman -S i3 dmenu
+$ yaourt -S i3-gap
+$ pacman -S i3lock i3status dmenu rxvt-unicode
 ```
 
 * Install login manager  
 ```shell
-pacman -S lightdm lightdm-gtk-greater
+pacman -S lightdm lightdm-gtk-greeter
 systemctl enable lightdm
 systemctl start lightdm
+```
+
+* Install composite manager
+```shell
+$ pacman -S compton
+```
+
+### Install applets
+* Keyboard selector
+```shell
+$ yaourt -S gxkb
+```
+
+* Network manager applet
+```shell
+$ pacman -S network-manager-applet
+```
+
+* Auto mount
+```shell
+$ pacman -S devmon
 ```

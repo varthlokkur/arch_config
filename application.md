@@ -1,3 +1,13 @@
+* Command line completion
+```shell
+$ pacman -S bash-completion
+```
+
+* Terminal emulator and multiplexer
+```shell
+$ pacman -S rxvt-unicode tmux
+```
+
 * Git
 ```shell
 $ pacman -S git meld
@@ -6,6 +16,11 @@ $ pacman -S git meld
 * Editors
 ```shell
 $ pacman -S vim emacs
+
+```
+* Web browser
+```shell
+$ pacman -S chromium
 ```
 
 * Media
@@ -14,11 +29,6 @@ $ pacman -S alsa-utils alsa-plugins
 $ pacman -S vlc qt4
 $ pacman -S cmus
 $ pacman -S zathura
-```
-
-* Web browser
-```shell
-$ pacman -S chromium
 ```
 
 * Settings configurators
