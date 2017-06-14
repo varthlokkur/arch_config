@@ -220,6 +220,10 @@ $ pacman -S compton
 ```shell
 $ yaourt -S gxkb
 ```
+* Notification manager
+```shell
+$ yaourt -S twmn-git
+```
 
 * Network manager applet
 ```shell
@@ -229,4 +233,8 @@ $ pacman -S network-manager-applet
 * Auto mount
 ```shell
 $ pacman -S devmon
+```
+* Theme manager
+```shell
+$ sudo pacman -S gtk-theme-switch2
 ```

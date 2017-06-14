@@ -1,0 +1,6 @@
+font pango:xos4 Terminus 8
+
+bindsym $mod+Return exec lilyterm
+bindsym $mod+d exec dmenu_run -fn 'xos4 Terminus-8'
+bindsym $mod+Shift+minus move scratchpad
+bindsym $mod+minus scratchpad show
