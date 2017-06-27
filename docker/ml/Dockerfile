@@ -25,6 +25,7 @@ COPY .emacs.d/ /etc/skel/
 
 RUN useradd --create-home 
 
-# run jupyter
-RUN jupyter notebook --no-browser
+COPY jupyter.service /usr/lib/systemd/system
+RUN systemctl enable jupyter
+
 EXPOSE 8888
