@@ -71,17 +71,35 @@ $ systemctl start sshd.service
 $ systemctl enable sshd.service
 ```
 
+configure /etc/ssh/sshd_config
+AllowTcpForwarding yes
+X11UserLocalhost yes
+X11DisplayOffset 10
+X11Forwarding yes
+
+to root logon use
+PermitRootLogon yes
+
 Install openbox
 ```shell
 $ pacman -S openbox
+$ pacman -S obconf obmenu openbox-themes
+$ pacman -S thunar 
+$ pacman -S tint2
 ```
 
 Install and configure x2go server
 ```shell
-$ pacman -S openbox x2goserver 
+$ pacman -S openbox x2goserver
+x2godbadmin --createdb 
 $ systemctl start x2goserver
 $ systemctl enable x2goserver
 ```
+
+Install packages
+```shell
+pacman -S rxvt-unicode bash-completion tmux
+
 
 # Unpriveleged container
 
@@ -131,6 +149,9 @@ change the password in container
 chroot /var/lib/lxc/container/rootfs
 passwd
 exit
+
+generate key for container
+ssh-keygent -R hostname
 
 start unpriviledged container
 sudo cgm create all $USER
