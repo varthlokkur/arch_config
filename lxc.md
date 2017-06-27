@@ -70,10 +70,6 @@ $ pacman -S openssh
 $ systemctl start sshd.service
 $ systemctl enable sshd.service
 ```
-Install xauth and xhost
-```shell
-$ pacman -S xorg-xauth xorg-host
-```
 
 configure /etc/ssh/sshd_config
 AllowTcpForwarding yes

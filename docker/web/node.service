@@ -1,0 +1,17 @@
+[Unit]
+Description=Node Server
+
+[Service]
+ExecStart=/usr/local/bin/ng serve
+WorkingDirectory=/home/web/workspace
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nodejs-example
+User=web
+Group=web
+Environment=NODE_ENV=development PORT=1337
+
+[Install]
+WantedBy=multi-user.target

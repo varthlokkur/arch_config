@@ -1,136 +1,240 @@
-# Arch linux installation and configuration
+This repository provides my config files and installation instruction for development environment based on archlinux.
+The instruction is designed for a clean system with UEFI support. 
 
-# check efi 
-efivar -l
+## Installation
 
-# find disk
-lsblk
+### Prepare archlinux image
+1. Download the latest [archlinux image](https://www.archlinux.org/download) 
+2. Burn it to flash drive or CD-ROM.
+3. Setup your machine and load image
 
-# clean disk
-gdisk /dev/sda
-x
-z
-y
-y
+### Prepare disk
+* Make sure that the UEFI is on  
+```shell
+$ efivar -l
+```
 
-# partition on disk
-cgdisk /dev/sda
+* Enumerate disks  
+``` shell
+$ lsblk
+```  
+Should output /dev/sda/
+
+* Clean disk  
+```shell
+$ sgdisk --xap-all /dev/sda
+```
+
+* Create new partition. Use GPT.  
+```shell
+$ cgdisk /dev/sda
+```
+```
 new 1024M 	EF00 boot
 new 12G 	8200 swap
 new 40G    		 root
 new 			 home
+```
 
-# file system creation
-mkfs.fat -F32 /dev/sda1
-mkfs.btrfs /dev/sda3
-mkfs.btrfs /dev/sda4
-mkswap /dev/sda2
-swapon /dev/sda2
+* Create file system on partitions  
+```shell
+$ mkfs.fat -F32 /dev/sda1
+$ mkfs.btrfs /dev/sda3
+$ mkfs.btrfs /dev/sda4
+$ mkswap /dev/sda2
+$ swapon /dev/sda2
+```
 
-# mount filesystems
+* Mount file system  
+```shell
 mount /dev/sda3 /mnt 
 mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
 mkdir /mnt/home
 mount /dev/sda4 /mnt/home
+```
 
-# uncomment mirrorlist
-vim /etc/pacman.d/mirrorlist
+### Install base system
 
-# install system
-pacstrap -i /mnt base base-devel
+* Change mirrorlist  
+```shell
+$ vim /etc/pacman.d/mirrorlist
+```
 
-# generate fstab file
-genfstab -U -p /mnt >> /mnt/etc/fstab
+* Install base system  
+```shell
+$ pacstrap -i /mnt base base-devel
+```
 
-# root in system
-arch-chroot /mnt
+* Generate fstab  
+```shell
+$ genfstab -U -p /mnt >> /mnt/etc/fstab
+```
 
-# generate locales (uncomment needed) 
-systemctl language
-vim /etc/locale.gen 
-locale-gen
+* Chroot to system  
+```shell
+$ arch-chroot /mnt
+```
 
-# install system locale
-echo LANG=en-US.UTF-8 >> /etc/locale.conf
-export LANG=en-US.UTF-8
+* Generate locales (uncomment needed)  
+```shell
+$ vim /etc/locale.gen 
+$ locale-gen
+```
 
-# set timezone
-ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+* Install system locale  
+```shell
+$ echo LANG=en-US.UTF-8 >> /etc/locale.conf
+$ export LANG=en-US.UTF-8
+```
 
-# update clock
-hwclock --systohc --utc
+* Set timezone  
+```shell
+$ ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+```
 
-vim /etc/pacman.conf
-uncomment 
-[multilib]
+* Update clock
+```shell
+$ hwclock --systohc --utc
+```
 
-# upgrade
-pacman -Syu
+* Set hostname  
+```shell
+$ echo varthlokkur >> /etc/hostname
+```
 
-# set hostname
-echo varthlokkur >> /etc/hostname
+* Set root password  
+```shell
+$ passwd
+``` 
 
-# set root password
-passwd 
+* Add user  
+```shell
+$ useradd -m -g users -G wheel,power,storage -s /bin/bash varthlokkur
+$ EDITOR=vim visudo
+uncomment %wheel(ALL = ALL)
+```
 
-# add default user
-useradd -m -g users -G wheel,power,storage -s /bin/bash varthlokkur
-EDITOR=vim visudo
-# uncomment %wheel(ALL = ALL)
+* Install boot loader
+```shell
+$ mount -t efivarfs efivarfs /sys/firmware/efi/efivars
+$ bootctl install
+$ echo "title Arch Linux
+linux /vmlinuz-linux
+initrd /initramfs-linux.img
+options root=PARTUUID=`blkid -S PARTUUID -o value /dev/sda3` rw" > /boot/loader/entries/arch.conf
+```
 
-# install boot loader
-# grub
-pacman -S grub os_prober
-grub-install /dev/sda
-grub-mkconfig -o /boot/grub/grub.cfg
+* Install yauort
+```shell
+$ echo "[archlinuxfr]
+SigLevel = Never
+Server = http://repo.archlinux.fr/$arch" >> /etc/pacman.conf
+$ pacman -Sy yaourt
+```
 
-# uefi grub
-grub-install --target=x86_x64-efi --efi-directory=$esp --bootloader-id=arch_grub --recheck
+* Configure network
+```shell
+$ ip link
+$ systemctl enable dhcpcd@interface_name.service
+```
+
+* Configure wi-fi
+```shell
+$ pacman -S iw wpa_supplicant dialog 
+$ systemctl enable netcli@interface_name.service
+```
+
+* Reboot system
+```shell
+$ exit
+$ umount -R /mnt
+$ reboot
+```
+
+### Configure system
+
+* Setup networkmanager
+```shell
+$ ip link
+$ pacman -S dialog networkmanager
+$ systemctl stop dhcpcd@ens0.service
+$ systemctl disable dhcpcd@ens0.service
+$ systemctl stop netcli@ws1.service
+$ systemctl disable netcli@ws1.service
+$ systemctl stop dhcpcd.service
+$ systemctl disable dhcpcd.service
+$ systemctl enable NetworkManager.service
+$ systemctl start NetworkManager.service
+```
+
+* Find and install video drivers  
+```shell 
+$ lspci | grep -e VGA -e 3D
+$ pacman -Ss | grep xf86-video
+$ pacman -S xf86-video-intel
+$ pacman -S mesa
+```
+ 
+* Install touchpad driver
+```shell
+$ pacman -S xf86-input-synaptics
+```
+
+* Install terminal font
+```shell
+$ pacman -S terminus-font
+```
+
+### Installation application
+[List of applications](application.md) 
 
 
-# installation application
-pacman -S rxvt-unicode #terminal emulator
-pacman -S dialog
+## Install desktop environment
 
-# configure network
-pacman -S networkmanager network-manager-applet
-systemctl stop dhcpcd@ens0.service
-systemctl disable dhcpcd@ens0.service
-systemctl stop netcli@ws1.service
-systemctl disable netcli@ws1.service
-systemctl stop dhcpcd.service
-systemctl disable dhcpcd.service
-systemctl enable NetworkManager.service
-systemctl start NetworkManager.service
+* Installing X  
+```shell
+$ pacman -S xorg-server
+```
 
-exit
-umount -R /mnt
-reboot
+* Install tile window manager
+```shell
+$ yaourt -S i3-gap
+$ pacman -S i3lock i3status dmenu rxvt-unicode
+```
 
-# installing x and wm
-pacman -S xorg-server xorg-xinit xorg-utils xort-server-utils
-pacman -S mesa
-pacman -S xf86-input-synaptics
-
-# detect video card
-lspci | grep VGA
-
-# find drivers
-pacman -Ss | grep xf86-video
-
-# install drivers
-pacman -S xf86-video-intel
-
-# install wm
-pacman -S i3 dmenu
-
-# install logit manager
-pacman -S lightdm lightdm-gtk-greater
-
+* Install login manager  
+```shell
+pacman -S lightdm lightdm-gtk-greeter
 systemctl enable lightdm
 systemctl start lightdm
+```
 
+* Install composite manager
+```shell
+$ pacman -S compton
+```
 
+### Install applets
+* Keyboard selector
+```shell
+$ yaourt -S gxkb
+```
+* Notification manager
+```shell
+$ yaourt -S twmn-git
+```
 
+* Network manager applet
+```shell
+$ pacman -S network-manager-applet
+```
 
+* Auto mount
+```shell
+$ pacman -S devmon
+```
+* Theme manager
+```shell
+$ sudo pacman -S gtk-theme-switch2
+```

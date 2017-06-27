@@ -23,8 +23,7 @@ COPY .emacs.d/ /etc/skel/.emacs.d/
 RUN useradd --create-home --shell /bin/bash -g users -G wheel,power,storage vart  
 RUN echo ml:ml | chpasswd
 
-# run jupyter
-EXPOSE 8888
+COPY jupyter.service /usr/lib/systemd/system
+RUN systemctl enable jupyter
 
-#USER vart
-#RUN jupyter notebook --no-browser --ip=127.0.0.1
+EXPOSE 8888
