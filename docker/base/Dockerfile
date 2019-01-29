@@ -1,17 +1,11 @@
-FROM base/archlinux
+FROM base/archlinux:latest
 ENV container nointeractive
 
 RUN echo $'[archlinuxfr]\n\
 SigLevel = Never\n\
 Server = http://repo.archlinux.fr/$arch' >> /etc/pacman.conf
 
-RUN echo $'##\n\
-## Arch Linux repository mirrorlist\n\
-## Generated on 2017-06-21\n\
-##\n\
-## Russia\n\
-Server = http://mirror.yandex.ru/archlinux/$repo/os/$arch\n\
-Server = https://mirror.yandex.ru/archlinux/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+COPY mirrorlist /etc/pacman.d/mirrorlist
 
 # upgrade system
 RUN pacman -Syu --noconfirm
@@ -27,9 +21,9 @@ RUN pacman -S rxvt-unicode tmux bash-completion --noconfirm
 # install development tools 
 RUN pacman -S vim emacs git meld --noconfirm
 
-RUN pacman -S xarchiver thunar i3lock i3status dmenu --noconfirm
+RUN pacman -S xarchiver thunar i3 i3lock i3status dmenu --noconfirm
 
-RUN yaourt -S i3-gap
+#RUN yaourt -S i3-gap
 
 # configure remote access
 RUN sed -i 's/.*X11Forwarding.*/X11Forwarding yes/g' /etc/ssh/sshd_config && \
